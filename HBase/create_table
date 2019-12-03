@@ -1,0 +1,7 @@
+disable 'hbase_transactions'
+
+drop 'hbase_transactions'
+
+create 'hbase_transactions', 'tr', {SPLITS => ['b','c','d','f']}
+
+alter 'hbase_transactions', {NAME => 'tr', VERSIONS =>10}

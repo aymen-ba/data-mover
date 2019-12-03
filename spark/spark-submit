@@ -1,0 +1,41 @@
+#!/bin/bash
+spark-submit
+--jars /usr/hdp/current/hive-client/lib/datanucleus-core-3.2.10.jar,/usr/hdp/current/hive-client/lib/datanucleus-api-jdo-3.2.6.jar,/usr/hdp/current/hive-client/lib/datanucleus-rdbms-3.2.9.jar,common.jar,multitool_2.10-0.2-SNAPSHOT.jar,hbase-rdd_2.10-0.8.0.jar
+--files bhc.properties,krb5.conf,dco_app_bhc.keytab
+--class fr.edf.dco.app.bhc.batch.spark.jobs.$1
+--master yarn-cluster
+--queue dco_batch
+--conf spark.yarn.executor.memoryOverhead=2048
+--conf spark.yarn.driver.memoryOverhead=2048
+--num-executors 10
+--executor-memory 2G
+--executor-cores 5
+--driver-memory 5G
+--driver-cores 5
+bhc-1.0.0.jar $2 $3 $4 $5
+
+
+spark-submit
+--class HiveToHbaseJob
+--master local[4]
+data-mover_2.11-0.1.jar
+
+
+/tmp/data/* ==> 100 fichiers (de 100 MO)  ===> 100 partitions ===> (--master Local[4])  ===> temps d'execution de job: 17min
+
+/tmp/data/* ==> 100 fichiers (de 100 MO)  ===> 100 partitions ===> (--master Local[7])  ===> temps d'execution de job: WARN Executor: Issue communicating with driver in heartbeater
+
+/tmp/data/* ==> 100 fichiers (de 100 MO)  ===> 100 partitions ===> coalesce: 4 partitions ===> (--master Local[4])  ===> temps d'execution de job: java.lang.OutOfMemoryError: GC overhead limit exceeded
+
+
+/user/aymen/data/transactions.parquet ===> 1 file of 10GO: 87 hdfs blocks ===> 87 parttions (--master Local[4])  ===> temps d'execution de job:
+
+/user/aymen/data/transactions.parquet ===> 1 file of 10GO: 87 hdfs blocks ===> 87 parttions (--master Local[7])  ===> temps d'execution de job: WARN Executor: Issue communicating with driver in heartbeater
+
+
+
+spark-submit --packages com.hortonworks:shc-core:1.1.1-2.1-s_2.11
+ --repositories https://repo.hortonworks.com/content/groups/public/
+ --conf spark.eventLog.enabled=false
+  --class HiveToHbaseJob
+   data-mover_2.11-1.0.jar
